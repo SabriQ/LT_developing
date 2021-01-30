@@ -15,12 +15,12 @@ class DataBase():
         Trial_path = r"../../Trials"
         Session_path = r"../../Sessions"
         Celltype_path = r"../../results/celltypes"
-        Context_map_file_path = r"../../developing/context_map.csv"
+        Context_map_file_path = r"../../Linear_Track_developing/context_map.csv"
     elif platform.system()=='Windows':
         Trial_path =r"\\10.10.47.163\Data_archive\qiushou\Trials"
         Session_path = r"\\10.10.47.163\Data_archive\qiushou\Sessions"
         Celltype_path = r"\\10.10.47.163\Data_archive\qiushou\results\celltypes"
-        Context_map_file_path=r"\\10.10.47.163\Data_archive\qiushou\developing\context_map.csv"
+        Context_map_file_path=r"\\10.10.47.163\Data_archive\qiushou\Linear_Track_developing\context_map.csv"
 
     trials = glob.glob(os.path.join(Trial_path,"*.pkl"))
     sessions = glob.glob(os.path.join(Session_path,"*.pkl"))
