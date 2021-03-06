@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import glob,sys,os,re,platform,copy
 
 from multiprocessing import Pool
+
 from Cdatabase import DataBase,CellType
 db = DataBase()
 
@@ -30,7 +31,7 @@ def mouseid_part_day_aim(session:str,):
 
 #%% -------cell types-------------
 
-def add_info2celltype(s:AnaMini,generate_list:list,result_add = None):
+def add_info2celltype(s:AnaMini,generate_list:list):
     """
     add contextcells, rdcells, pccells in one time
     """
@@ -38,26 +39,26 @@ def add_info2celltype(s:AnaMini,generate_list:list,result_add = None):
     s.add_Context()
     s.add_alltrack_placebin_num(place_bin_nums=[4,4,30,4,4,4])
 
-    result= {}
+    add_result= {}
     if "contextcells" in generate_list:
         contextcells = cellid_Context(s
                        ,"S_dff"
                        ,placebin=np.arange(8,38)) 
-        result["contextcells"] = contextcells
+        add_result["contextcells"] = contextcells
 
     if "contextcells2" in generate_list:
         contextcells2 = cellid_Context(s
                    ,"S_dff"
                    ,process=[1,2,3]
                    ,placebin=np.arange(8,38))
-        result["contextcells2"] = contextcells2
+        add_result["contextcells2"] = contextcells2
 
     if "contextcells3" in generate_list:
         contextcells3 = cellid_Context(s
                    ,"S_dff"
                    ,process=[0,4,5]
                    ,placebin=np.arange(8,38))
-        result["contextcells3"] = contextcells3
+        add_result["contextcells3"] = contextcells3
 
     s.add_Body_speed(scale=0.33)
     s.add_running_direction(according="Body")
@@ -66,27 +67,27 @@ def add_info2celltype(s:AnaMini,generate_list:list,result_add = None):
         rdcells = cellid_RD_incontext(s
                             ,"S_dff"
                             ,placebin=np.arange(8,38))
-        result["rdcells"] = rdcells
+        add_result["rdcells"] = rdcells
 
     if "rdcells2" in generate_list:
         rdcells2 = cellid_RD_incontext(s
                             ,"S_dff"
                             ,placebin=np.arange(8,38)
                             ,Body_speed=3)
-        result["rdcells2"] = rdcells2
+        add_result["rdcells2"] = rdcells2
 
     if "rdcells3" in generate_list:
         rdcells3 = cellid_RD_incontext(s
                             ,"S_dff"
                             ,placebin=np.arange(8,38)
                             ,Body_speed=5)
-        result["rdcells3"] = rdcells3
+        add_result["rdcells3"] = rdcells3
 
     if "rdcells4" in generate_list:
         rdcells4 = cellid_RD_incontext(s
                             ,"S_dff"
                             ,placebin=np.arange(4,42))
-        result["rdcells4"] = rdcells4
+        add_result["rdcells4"] = rdcells4
 
     ## place cells 
     if "pccells" in generate_list:
@@ -94,7 +95,7 @@ def add_info2celltype(s:AnaMini,generate_list:list,result_add = None):
                             ,"S_dff"
                             ,placebin=np.arange(8,38)
                             ,Body_speed=3)
-        result["pccells"] = pccells
+        add_result["pccells"] = pccells
 
 
     if "pccells2" in generate_list:
@@ -102,7 +103,7 @@ def add_info2celltype(s:AnaMini,generate_list:list,result_add = None):
                             ,"S_dff"
                             ,placebin=np.arange(4,42)
                             ,Body_speed=3)
-        result["pccells2"] = pccells2
+        add_result["pccells2"] = pccells2
 
     if "pccells3" in generate_list:
         pccells3 = cellid_PC_incontext(s
@@ -110,7 +111,7 @@ def add_info2celltype(s:AnaMini,generate_list:list,result_add = None):
                             ,placebin=np.arange(8,38)
                             ,process=[1,2,3]
                             ,Body_speed=3)
-        result["pccells3"] = pccells3
+        add_result["pccells3"] = pccells3
 
     if "pccells4" in generate_list:
         pccells4 = cellid_PC_incontext(s
@@ -118,101 +119,164 @@ def add_info2celltype(s:AnaMini,generate_list:list,result_add = None):
                             ,placebin=np.arange(8,38)
                             ,process=[0,4,5]
                             ,Body_speed=3)
-        result["pccells4"] = pccells4
+        add_result["pccells4"] = pccells4
 
     # begave state
 
     if "stat_info" in generate_list:
         stat_info = behave_stat_info(s)
-        result["stat_info"]=stat_info
+        add_result["stat_info"]=stat_info
 
     # 20210128
     if "svm_score_dict" in  generate_list:
         svm_score_dict = main_svm_score(s
                                         ,"S_dff")
-        result["svm_score_dict"] = svm_score_dict
+        add_result["svm_score_dict"] = svm_score_dict
 
 
-    if result_add is None:
-        return result
-    else:
-        result = dict(result_add,**result)
-        return result
+    return add_result
 
+    # if Result_add is None:
+    #     return add_result
+    # else:
+    #     add_result = dict(Result_add,**add_result)
+    #     return add_result
 
-def save_info2celltypes(celltype:str,sessionpath:str=None,recal=False):
-    print(celltype)
+def save_info2_new_celltypes2(session:str):
+    """
+    according to session to save new celltype file.
+    """
+    print(session)
     try:
 
         all_keys=['contextcells', 'contextcells2', 'contextcells3', 'rdcells', 'rdcells2', 'rdcells3'
             , 'rdcells4', 'pccells', 'pccells2', 'pccells3', 'pccells4', 'stat_info','svm_score_dict']
 
-        if not sessionpath is None:
-            session = sessionpath
-            size = 0
+        mouse_id,part,day,aim = mouseid_part_day_aim(session)
+        filename = "celltype_%s_part%s_day%s_aim_%s.pkl"%(mouse_id,part,day,aim)
+        celltype = os.path.join(db.Celltype_path,filename)
 
-            mouse_id,part,day,aim = mouseid_part_day_aim(session)
-            filename = "celltype_%s_part%s_day%s_aim_%s.pkl"%(mouse_id,part,day,aim)
-            celltype = os.path.join(db.Celltype_path,filename)
-        else:
-            
-            ct = CellType(celltype)
-            session = ct.find_session()
-            size = os.path.getsize(celltype)
+        session_info = {
+        "mouse_id":mouse_id,
+        "part":part,
+        "day":day,
+        }
 
-        if size <1:
-            recal = True
-        if recal:
+        generate_list = all_keys
+        print("all_keys:",generate_list)
 
-            mouse_id,part,day,aim = mouseid_part_day_aim(session)
 
-            result_add = {
-            "mouse_id":mouse_id,
-            "part":part,
-            "day":day,
-            }
-            generate_list = all_keys
-            print("all_keys:",generate_list)
-        else:
-            generate_list = [i for i in all_keys if not i in ct.keys]
-            print("part of all_keys:",generate_list)
-            result_add = load_pkl(celltype)
-            if len(result_add.keys())==0:
-                result_add = {
-                    "mouse_id":mouse_id,
-                    "part":part,
-                    "day":day,
-                    }
+        s = build_session(session)
+        add_result = add_info2celltype(s,generate_list) ## add information to result according to general_list
+        result = {**session_info,**add_result }
+        save_pkl(result,celltype)
 
-        
-        if len(generate_list) > 0:
-            s = build_session(session)
-
-            result = add_info2celltype(s,generate_list,result_add) ## add infor mation to result according to general_list
-            save_pkl(result,celltype)
-
-        else:
-            pass
-    except:
+    except Exception as e:
+        print(e)
         with open("error_file.txt","a",encoding="utf-8") as f:
             f.write(celltype)
             f.write("\n")
 
+def save_info2celltypes(celltype:str):
+    """
+    add new info to celltype files
+    """
+    try:
+        ct = CellType(celltype)
+        session = ct.find_session()
+        mouse_id,part,day,aim = mouseid_part_day_aim(session)
+        all_keys=['contextcells', 'contextcells2', 'contextcells3', 'rdcells', 'rdcells2', 'rdcells3'
+                , 'rdcells4', 'pccells', 'pccells2', 'pccells3', 'pccells4', 'stat_info','svm_score_dict'] #,'svm_score_dict'
+
+        result = ct.result
+        session_info = {
+            "mouse_id":mouse_id,
+            "part":part,
+            "day":day,
+            }
+
+
+        if isinstance(result,set):
+            generate_list = all_keys
+            result = {}
+
+            s = build_session(session)
+            add_result = add_info2celltype(s,generate_list)
+            result = {**session_info,**add_result}
+            save_pkl(result,celltype)
+        else:
+            if not "mouse_id" in result.keys():
+                add_result = {**session_info,**add_result}
+
+
+            generate_list = [i for i in all_keys if not i in result.keys()]
+
+
+            if len(generate_list)>0:
+                print("generate_list: ",generate_list)
+                s = build_session(session)
+                add_result = add_info2celltype(s,generate_list)
+                new_result = {**result,**add_result}
+                save_pkl(new_result,celltype)
+            else:
+                print("Already the newest!")
+    except Exception as e:
+        save_pkl(result,celltype)
+        print(e)
+        print("%s error"%celltype)
+        with open("error_file.txt","a",encoding="utf-8") as f:
+            f.write(celltype)
+            f.write("\n")
+
+def update_info2celltypes(celltype:str,update_list:list=["stat_info"]):
+    """
+    update the existed info in celltype file
+    """
+    try:
+        ct = CellType(celltype)
+        session = ct.find_session()
+        result = ct.result
+
+        generate_list = [i for i in update_list if i in result.keys()]
+
+        if not len(generate_list) == 0:
+            s = build_session(session)
+            update_result = add_info2celltype(s,generate_list)
+            new_result = {**result,**update_result}
+            print("%s is updated"%generate_list)
+            save_pkl(new_result,celltype)
+
+        else:
+            print("%s has no item to update")
+    except Exception as e:
+        try:
+            save_pkl(result,celltype)
+        except:
+            pass
+        print(e)
+        print("%s error"%celltype)
+        with open("update_error_file.txt","a",encoding="utf-8") as f:
+            f.write(celltype)
+            f.write("\n")
+
 def main_update_celltypes():
+    
     """
     generate or update celltype files
     """
     celltypes = db.index_celltypes()
 
-    celltypes = [i for i in celltypes ]
     # celltypes = [i for i in celltypes if "celltype_206550_part5_day20200821_aim_test.pkl" in i]
-    # celltypes = [i for i in celltypes if "celltype_2020" in i]
+    # celltypes = [i for i in celltypes if "celltype" in i and  "part1" in i]
     # celltypes = [i for i in celltypes if "206553" in i]
     [print(i) for i in celltypes]
-    for celltype in celltypes:
-        save_info2celltypes(celltype)
-    # p = Pool(processes=8)
-    # p.map(save_info2celltypes,celltypes)
+    # for celltype in celltypes:
+    #    print(celltype)
+    #    update_info2celltypes(celltype)
+       # sys.exit()
+    p = Pool(processes=8)
+    p.map(save_info2celltypes,celltypes)
+    # save_info2celltypes2(session=r"\\10.10.47.163\qiushou\LinearTrack\Sessions\206552_part6_day20200906_aim_lack_wall.pkl"))
 
 
 

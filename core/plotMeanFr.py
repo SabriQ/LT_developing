@@ -24,14 +24,41 @@ def plot_single_cell_example(session:str):
     for idx in Context_Matrix_info["cellids"]:
         print("===%s:%s==="%(Context_Matrix_info["mouse_id"],idx))
         plot_MeanFr_along_Placebin(Context_Matrix_info=Context_Matrix_info
-                           ,idx=idx,save=False,show=True,savedir=r"../../results/plots")
+                           ,idx=idx,save=True,show=False,savedir=r"../../results/plots")
 
 
 def main_plot_single_cell_example():
     sessions = db.index_sessions()
-    sessions = [i for i in sessions if "201034_part234_day20200803_aim_B1C1" in i]
-    for session in sessions:
-        plot_single_cell_example(session)
+    strs = [
+        "201034_part234_day20200803_aim_BC",
+        "201034_part234_day20200801_aim_ce",
+        "201034_part234_day20200727_aim_ce",
+        "201034_part234_day20200804_aim_AB",
+        "201034_part234_day20200730_aim_ce",
+        "201034_part234_day20200730_aim_lg",
+        "206534_part234_day20200806_aim_ce",
+        "201034_part234_day20200807_aim_ce",
+        "201034_part234_day20200803_aim_A1C1",
+        "201034_part234_day20200804_aim_A1B1",
+        "206551_part234_day20200801_aim_ce",
+        "206551_part234_day20200801_aim_lg",
+        "201034_part234_day20200727_aim_lg",
+        "201034_part234_day20200803_aim_AC",
+        "201034_part234_day20200806_aim_ce",
+        "201034_part234_day20200805_aim_ce",
+        "206551_part234_day20200731_aim_ce",
+        "201034_part234_day20200801_aim_lg",
+        "206548_part234_day20200731_aim_ce"
+    ]
+    selected_sessions=[]
+    for s in strs:
+        session = [i for i in sessions if s in i][0]
+        selected_sessions.append(session)
+    # sessions = [i for i in sessions if "201034_part234_day20200803_aim_BC" in i]
+    pool = Pool(4)
+    pool.map(plot_single_cell_example,selected_sessions)
+    # for session in selected_sessions:
+    #     plot_single_cell_example(session)
 
 if __name__ == '__main__':
     main_plot_single_cell_example()

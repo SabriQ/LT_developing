@@ -17,10 +17,10 @@ class DataBase():
         Celltype_path = r"../../results/celltypes"
         Context_map_file_path = r"../../Linear_Track_developing/context_map.csv"
     elif platform.system()=='Windows':
-        Trial_path =r"\\10.10.47.163\Data_archive\qiushou\Trials"
-        Session_path = r"\\10.10.47.163\Data_archive\qiushou\Sessions"
-        Celltype_path = r"\\10.10.47.163\Data_archive\qiushou\results\celltypes"
-        Context_map_file_path=r"\\10.10.47.163\Data_archive\qiushou\Linear_Track_developing\context_map.csv"
+        Trial_path =r"\\10.10.47.163\qiushou\LinearTrack\Trials"
+        Session_path = r"\\10.10.47.163\qiushou\LinearTrack\Sessions"
+        Celltype_path = r"\\10.10.47.163\qiushou\LinearTrack\results\celltypes"
+        Context_map_file_path=r"\\10.10.47.163\qiushou\LinearTrack\Linear_Track_developing\context_map.csv"
 
     trials = glob.glob(os.path.join(Trial_path,"*.pkl"))
     sessions = glob.glob(os.path.join(Session_path,"*.pkl"))
@@ -89,19 +89,23 @@ class DataBase():
         mouse_ids=[]
         parts=[]
         days=[]
+        aims=[]
         for session in DataBase.sessions:
             mouse_id = re.findall("(\d+)_part",session)[0]
             part = re.findall("part(\d+)",session)[0]
             day = re.findall("day(\d+)",session)[0]
+            aim = re.findall("aim_(.*).pkl",session)[0]
 
             mouse_ids.append(mouse_id)
             parts.append(part)
             days.append(day)
+            aims.append(aim)
 
         df = pd.DataFrame()
         df["mouse_id"] = mouse_ids
         df["part"] = parts
         df["day"] = days
+        df["aim"] = aims
         return df
 
     def add_order2part(self,part=1):
@@ -202,9 +206,12 @@ class DataBase():
         if not day is None:
             celltypes = [i for i in celltypes if str(day) in i]
         if not aim is None:
-            celltypes = [i for i in celltypes if str(aim) in i]
+            celltypes = [i for i in celltypes if "aim_"+str(aim) in i]
 
         return celltypes
+
+    def organize_celltypes(self,):
+        pass
 
 
 
@@ -420,6 +427,10 @@ class CellType():
     @property
     def keys(self):
         return load_pkl(self.filepath).keys()
+        
+    @property
+    def result(self):
+        return load_pkl(self.filepath)
 
     def mouseid_part_day_aim(self):
         mouse_id = re.findall("(\d+)_part",self.filepath)[0]
@@ -468,6 +479,14 @@ class CellType():
         maxfr_placebins = Meanfr_along_placebins["context%s"%context].idxmax(axis=1)
         return maxfr_placebins
 
+    def trial_length(self):
+        """
+        """
+        session = self.find_session()
+        s = build_session(session)
+        behavelog_time = s.result["behavelog_time"]
+        return pd.Series(behavelog_time["P_r_exit"] - behavelog_time["P_nose_poke"],name="trial_length")
+
     def specific_ids(self,contexts=[0,1]):
         if contexts[0] > contexts[1]:
             contexts = sorted(contexts)
@@ -485,7 +504,7 @@ class CellType():
     #     contextcell_ids["nonctxcells"] = ["%s_%s"%(r["mouse_id"],i) for i in noncontextcells]
  
         rdcell_ids = {}
-        print("rdcells: try body_speed> 3cm/s")
+        # print("rdcells: try body_speed> 3cm/s")
         rdcell_ids["context%s_leftcells"%contexts[0]] = ["%s_%s"%(r["mouse_id"],i) for i in r["rdcells2"]["context_%s"%contexts[0]]["left_cells"]]
         rdcell_ids["context%s_rightcells"%contexts[0]] = ["%s_%s"%(r["mouse_id"],i) for i in r["rdcells2"]["context_%s"%contexts[0]]["right_cells"]]
     #     rdcell_ids["context%s_nonrdcells"%contexts[0]] = ["%s_%s"%(r["mouse_id"],i) for i in r["rdcells"]["context_%s"%contexts[0]]["non_rd_cells"]]
